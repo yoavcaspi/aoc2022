@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os.path
-from collections import deque
+from collections import deque, defaultdict
 
 import pytest
 
@@ -22,56 +22,8 @@ class Valve:
         self.ns = {n: 1 for n in ns}
 
 
-visited = {}
-jjj = 0
-
-def find_best_sol(minutes, node, g, cur, o, valid_valves, prev = None):
-    if (minutes, node, o) in visited:
-        return visited[(minutes, node, o)]
-    if minutes == 0 or o == valid_valves:
-        return cur
-    max_val = cur
-    if node not in o and g[node].rate > 0:
-        o2 = frozenset(o ^ {node})
-        max_val = max(max_val, g[node].rate * (minutes - 1) + find_best_sol(minutes-1, node, g, cur, o2, valid_valves))
-    for n in g[node].ns:
-        if prev is not None and prev == n:
-            continue
-        max_val = max(max_val, find_best_sol(minutes-1, n, g, cur, o, valid_valves, node))
-    visited[minutes, node, o] = max_val
-
-    return max_val
-
-
-def find_best_sol2(m_a, node_a, m_b, node_b, g, cur, o, valid_valves, first = None):
-    if (m_a, node_a, m_b, node_b, o) in visited:
-        return visited[(m_a, node_a, m_b, node_b, o)]
-    if o == valid_valves:
-        return cur
-    max_val = cur
-    for n in valid_valves - o:
-        if first:
-            print(o, max_val)
-        size = g[node_a].ns[n]
-        if m_a > size:
-            o2 = frozenset(o ^ {n})
-            max_val = max(max_val, find_best_sol2(m_a - size - 1, n, m_b, node_b, g, cur + (g[n].rate * (m_a - size - 1)), o2, valid_valves))
-    for n in valid_valves - o:
-        if first:
-            print(o, max_val)
-        size = g[node_b].ns[n]
-        if m_b > size:
-            o2 = frozenset(o ^ {n})
-            max_val = max(max_val, find_best_sol2(m_a, node_a, m_b - size - 1, n, g, cur + (g[n].rate * (m_b - size - 1)), o2, valid_valves))
-    visited[m_a, node_a, m_b, node_b, o] = max_val
-    visited[m_b, node_b, m_a, node_a, o] = max_val
-
-    return max_val
-
-
 def compute(s: str) -> int:
     g = {}
-    print()
     for line in s.strip().splitlines():
         vals = line.split()
         name = vals[1]
@@ -80,7 +32,6 @@ def compute(s: str) -> int:
             ns = line.split(" valves ")[1].split(", ")
         else:
             ns = line.split(" valve ")[1].split(", ")
-        print(rate, ns)
         g[name] = Valve(name, rate, ns)
 
     # Remove unnecessary nodes
@@ -111,15 +62,37 @@ def compute(s: str) -> int:
                 v.add(n)
                 min_dist = g[name1].ns.get(n, 26)
                 g[name1].ns[n] = min(min_dist, val + val2)
+
     for name1, val1 in g.items():
         for name2, val2 in g.items():
             if name1 == name2:
                 continue
             val1.ns[name2] = min(val1.ns[name2], val2.ns[name1])
 
-    valid_valves = set([k for k, v in g.items() if v.rate > 0])
-    res = find_best_sol2(26, "AA", 26, "AA", g, 0, frozenset(), valid_valves, True)
-    return res
+    paths = defaultdict(int)
+    get_all_paths(g, "AA", 26, [], 0, paths)
+    max_flow = 0
+    for p1, f1 in paths.items():
+        for p2, f2 in paths.items():
+            if p1 & p2:
+                continue
+            max_flow = max(max_flow, f1 + f2)
+    return max_flow
+
+
+def get_all_paths(g, node, time, cur_path, cur_score, paths):
+    for n, length in g[node].ns.items():
+        if n == "AA":
+            continue
+        if n in cur_path:
+            continue
+        new_time = time - length - 1
+        if new_time <= 0:
+            continue
+        cur_path.append(n)
+        paths[frozenset(cur_path)] = max(paths[frozenset(cur_path)], cur_score + g[n].rate * new_time)
+        get_all_paths(g, n, new_time, cur_path, cur_score + g[n].rate * new_time, paths)
+        cur_path.pop(-1)
 
 
 INPUT_S = '''\
