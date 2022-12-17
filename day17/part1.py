@@ -13,89 +13,36 @@ INPUT_TXT = os.path.join(os.path.dirname(__file__), 'input.txt')
 
 class Shape:
     def __init__(self, shape):
-        self.left = []
-        self.bottom = []
-        self.right = []
         self.shape = []
         if shape == "####":
-            self.left.append((0, 0))
-            self.bottom.extend([(x, 0) for x in range(4)])
             self.shape.extend([(x, 0) for x in range(4)])
-            self.right.append((3, 0))
         elif shape == ".#.\n###\n.#.":
-            self.left.append((1, 0))
-            self.left.append((0, 1))
-            self.left.append((1, 2))
-
-            self.bottom.append((0, 1))
-            self.bottom.append((1, 0))
-            self.bottom.append((2, 1))
-
             self.shape = [(1, 0), (0, 1), (1, 1), (2, 1), (1, 2)]
-
-            self.right.append((1, 0))
-            self.right.append((2, 1))
-            self.right.append((1, 2))
         elif shape == "..#\n..#\n###":
-            self.left.append((0, 0))
-            self.left.append((2, 1))
-            self.left.append((2, 2))
-
-            self.bottom.append((0, 0))
-            self.bottom.append((1, 0))
-            self.bottom.append((2, 0))
-
             self.shape.append((0, 0))
             self.shape.append((1, 0))
             self.shape.append((2, 0))
             self.shape.append((2, 1))
             self.shape.append((2, 2))
-
-            self.right.append((2, 0))
-            self.right.append((2, 1))
-            self.right.append((2, 2))
         elif shape == "#\n#\n#\n#":
-            self.left.append((0, 0))
-            self.left.append((0, 1))
-            self.left.append((0, 2))
-            self.left.append((0, 3))
-
-            self.bottom.append((0, 0))
-
             self.shape.append((0, 0))
             self.shape.append((0, 1))
             self.shape.append((0, 2))
             self.shape.append((0, 3))
-
-            self.right.append((0, 0))
-            self.right.append((0, 1))
-            self.right.append((0, 2))
-            self.right.append((0, 3))
         elif shape == "##\n##":
-            self.left.append((0, 0))
-            self.left.append((0, 1))
-
-            self.bottom.append((0, 0))
-            self.bottom.append((1, 0))
-
             self.shape.append((0, 0))
             self.shape.append((1, 0))
             self.shape.append((0, 1))
             self.shape.append((1, 1))
-
-            self.right.append((1, 0))
-            self.right.append((1, 1))
         self.shape_raw = shape
 
     def move_wind(self, wind_dir, shape_pos, board):
         x, y = shape_pos
         if wind_dir == ">":
             d = 1
-            d_list = self.right
         else:
             d = -1
-            d_list = self.left
-        for sx, sy in d_list:
+        for sx, sy in self.shape:
             new_x = x + sx + d
             if new_x < 0 or new_x > 6:
                 return False
@@ -105,7 +52,7 @@ class Shape:
 
     def move_down(self, shape_pos, board):
         x, y = shape_pos
-        for sx, sy in self.bottom:
+        for sx, sy in self.shape:
             if board[x + sx, y + sy - 1] == "#":
                 return False
         return True
