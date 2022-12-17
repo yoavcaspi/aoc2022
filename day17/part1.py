@@ -85,14 +85,6 @@ class Shape:
 
             self.right.append((1, 0))
             self.right.append((1, 1))
-        else:
-            assert False
-        for x,y in self.left:
-            assert (x,y) in self.shape
-        for x,y in self.bottom:
-            assert (x,y) in self.shape
-        for x,y in self.right:
-            assert (x,y) in self.shape
         self.shape_raw = shape
 
     def move_wind(self, wind_dir, shape_pos, board):
@@ -157,13 +149,15 @@ def compute(s: str) -> int:
         board[x, 0] = "#"
     wind = s.strip()
     wind_i = 0
-    for i in range(2022):
+    i = 0
+    n = 2022
+    while i < n:
         max_y = max([y for (x, y), val in board.items() if val == "#"])
         shape = shapes[i % 5]
         shape_pos = (2, max_y + 4)
         while True:
-            wind_dir = wind[wind_i % len(wind)]
-            wind_i += 1
+            wind_dir = wind[wind_i]
+            wind_i = (wind_i + 1) % len(wind)
             if shape.move_wind(wind_dir, shape_pos, board):
                 if wind_dir == ">":
                     new_x = shape_pos[0] + 1
@@ -175,6 +169,7 @@ def compute(s: str) -> int:
             else:
                 place_shape(board, shape_pos, shape)
                 break
+        i += 1
     max_y = max([y for (x, y), val in board.items() if val == "#"])
     return max_y
 

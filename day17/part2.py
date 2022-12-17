@@ -125,7 +125,6 @@ def create_board_sig(line_count, max_y, board):
     for y in range(line_count):
         for x in range(7):
             res += board[x,y + max_y]
-    assert len(res) == 7 * 30
     return res
 
 
@@ -194,7 +193,6 @@ def compute(s: str) -> int:
                 place_shape(board, shape_pos, shape)
                 break
         i += 1
-    print(i)
     max_y = max([y for (x, y), val in board.items() if val == "#"])
     return max_y + add
 
